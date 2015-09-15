@@ -25,3 +25,38 @@ class WebDictionary <WEBrick::HTTPServlet:AbstractServlet
     }
   end
 end
+
+class AddWord < WEBrick::HTTPServlet::AbstractServlet
+  def do_GET(request, response)
+    if File.exist?("dictionary.txt")
+      words = File.readlines("dictionary.txt")
+    else
+      words = []
+    end
+
+    response.status = 200
+    response.body = %{
+      <html>
+        <body>
+        <form method="POST" action="/save">
+        <ul>
+          <li><input name="word" /></li>
+          <li><input name="definition" /></button>
+        </ul>
+        </body>
+      </html>
+    }
+  end
+end
+
+class SaveWord < WEBrick::HTTPServlet::AbstractServlet
+  def do_POST(request, response)
+    File.open("dictionary.txt", "a+") do |file|
+      file.puts "Word: #{request.query["word"]} Definition: #{request.query["definition"]}"
+    end
+
+    response.status = 302
+    response.header["Location"] = "/"
+    response.body = "Added Word!"
+  end
+end
