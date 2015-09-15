@@ -60,3 +60,21 @@ class SaveWord < WEBrick::HTTPServlet::AbstractServlet
     response.body = "Added Word!"
   end
 end
+
+class SearchWord < WEBrick::HTTPServlet::AbstractServlet
+  def do_POST(request, response)
+    lines = File.readlines("dictionary.txt")
+    search_results = lines.select { |line| line.include?(request.query["search_word"])}
+    search_html = "<ul>" + search_results.map { |line| "<li>#{line}</li>" }.join + "</ul>"
+
+    response.status = 200
+    response.body = %{
+      <html>
+        <body>
+        <a href="/">Back to Dictionary</a>
+        <p>#{search_html}</p>
+        </body>
+      </html>
+    }
+  end
+end
