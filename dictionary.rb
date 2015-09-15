@@ -1,9 +1,10 @@
 require 'webrick'
 
-class WebDictionary <WEBrick::HTTPServlet:AbstractServlet
+class WebDictionary < WEBrick::HTTPServlet::AbstractServlet
   def do_GET(request, response)
     if File.exist?("dictionary.txt")
       words = File.readlines("dictionary.txt")
+      html = "<ul>" + words.map { |line| "<li>#{line}</li>" }.join + "</ul>"
     else
       words = []
     end
@@ -12,14 +13,17 @@ class WebDictionary <WEBrick::HTTPServlet:AbstractServlet
     response.body = %{
       <html>
         <body>
+        <a href="/add">Add Word to Dictionary</a>
         <form method="POST" action="/search"
         <ul>
+          <li>Search for a Word:</li>
           <li><input name="search_word" /></li>
         </ul>
         <button type="submit">Search</button>
         </form>
-        <a href="/add>Add Word</a>
-        <p>#{words.join("<br />")}</p>
+        <hr>
+        <p>Dictionary</p>
+        <p>#{html}</p>
         </body>
       </html>
     }
@@ -28,21 +32,20 @@ end
 
 class AddWord < WEBrick::HTTPServlet::AbstractServlet
   def do_GET(request, response)
-    if File.exist?("dictionary.txt")
-      words = File.readlines("dictionary.txt")
-    else
-      words = []
-    end
 
     response.status = 200
     response.body = %{
       <html>
         <body>
-        <form method="POST" action="/save">
-        <ul>
-          <li><input name="word" /></li>
-          <li><input name="definition" /></button>
-        </ul>
+          <form method="POST" action="/save">
+          <ul>
+            <li>Add Word to Dictionary:</li>
+            <li><input name="word" /></li>
+            <li>Add Definition:</li>
+            <li><input name="definition" />
+            <li><button type="submit">Add Word</button></li>
+          </form>
+          </ul>
         </body>
       </html>
     }
@@ -57,7 +60,13 @@ class SaveWord < WEBrick::HTTPServlet::AbstractServlet
 
     response.status = 302
     response.header["Location"] = "/"
-    response.body = "Added Word!"
+    response.body = %{
+      <html>
+        <body>
+          <p>Saved Word to Dictionary!</p>
+        </body>
+      </html>
+    }
   end
 end
 
@@ -78,3 +87,13 @@ class SearchWord < WEBrick::HTTPServlet::AbstractServlet
     }
   end
 end
+
+server = WEBrick::HTTPServer.new(Port: 3000)
+server.mount "/", WebDictionary
+server.mount "/add", AddWord
+server.mount "/save", SaveWord
+server.mount "/search", SearchWord
+
+trap("INT") { server.stop }
+
+server.start
