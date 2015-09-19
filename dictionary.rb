@@ -54,6 +54,9 @@ end
 
 class SaveWord < WEBrick::HTTPServlet::AbstractServlet
   def do_POST(request, response)
+    # get word and definition from the request
+    # New dictionary should have the new word and definition in it
+    # Writing out the dictionary to yaml
     File.open("dictionary.txt", "a+") do |file|
       file.puts "Word: #{request.query["word"]} Definition: #{request.query["definition"]}"
     end
